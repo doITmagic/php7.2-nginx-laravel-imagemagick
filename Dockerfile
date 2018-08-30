@@ -53,7 +53,8 @@ RUN apt-get install -y --allow-unauthenticated wkhtmltopdf && \
 # installs unoconv
 RUN apt-get install -y unoconv --allow-unauthenticated && \
     ln -s /usr/bin/unoconv /usr/local/bin/unoconv 
-
+COPY config/unoconv.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/unoconv.sh
 
     # Install imagick extension
 RUN pecl install imagick 
@@ -63,6 +64,9 @@ RUN   echo extension=imagick.so > /etc/php/7.2/mods-available/imagick.ini \
 
 # copy config file for Supervisor
 COPY config/supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY config/nginx/default /etc/nginx/sites-enabled/default
+
+RUN usermod -u 1000 www-data
 
 # NGINX mountable directory for apps, mountable directories for config and logs
 VOLUME ["/var/www","/etc/nginx/sites-available", "/etc/nginx/ssl", "/var/log/nginx"]
