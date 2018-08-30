@@ -8,15 +8,20 @@ RUN echo "deb http://ppa.launchpad.net/nginx/stable/ubuntu `lsb_release -cs` mai
 echo "deb http://ppa.launchpad.net/ondrej/php/ubuntu `lsb_release -cs` main" > /etc/apt/sources.list.d/php.list && \
 # install packages
 apt-get update && \
-    apt-get -y --force-yes --no-install-recommends install \
+    apt-get -y --force-yes --no-install-recommends install  \
     supervisor \
     curl \
     nginx \
     zip \
     unzip \
     php7.2-fpm php7.2-dev php7.2-cli php7.2-common php7.2-curl php7.2-gd php7.2-intl php7.2-json php7.2-mbstring  php7.2-mysql php7.2-opcache  php7.2-soap  php7.2-xml php7.2-xmlrpc php7.2-xsl php7.2-zip php7.2-gd \
-    git wget openssl libssl-dev zlib1g-dev libicu-dev g++ make cmake libuv-dev libgmp-dev uuid-dev libpcre3-dev php-pear 
-    
+    git wget openssl libssl-dev zlib1g-dev libicu-dev g++ make cmake libuv-dev libgmp-dev uuid-dev libpcre3-dev php-pear  libmagickwand-dev imagemagick --allow-unauthenticated
+RUN apt-get install -yq \
+        libfreetype6-dev \
+        libmcrypt-dev \
+        libpng12-dev \
+        libjpeg-dev \
+        libpng-dev --allow-unauthenticated   
 # clear apt cache and remove unnecessary packages
 RUN mkdir -p /etc/nginx/htpasswd/  \
  mkdir -p /etc/nginx/ssl && \ 
@@ -38,6 +43,23 @@ apt-get autoclean && apt-get -y autoremove && \
 cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak && \
 apt-get autoclean -y --force-yes && \
 apt-get clean -y --force-yes
+
+
+# installs wkhtmltopdf
+RUN apt-get install -y --allow-unauthenticated wkhtmltopdf && \
+    ln -s /usr/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf 
+
+
+# installs unoconv
+RUN apt-get install -y unoconv --allow-unauthenticated && \
+    ln -s /usr/bin/unoconv /usr/local/bin/unoconv 
+
+
+    # Install imagick extension
+RUN pecl install imagick 
+
+RUN   echo extension=imagick.so > /etc/php/7.2/mods-available/imagick.ini \
+    && phpenmod imagick  && service php7.2-fpm restart
 
 # copy config file for Supervisor
 COPY config/supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
